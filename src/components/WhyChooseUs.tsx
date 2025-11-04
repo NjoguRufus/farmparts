@@ -41,6 +41,16 @@ const features = [
 ];
 
 export const WhyChooseUs: React.FC = () => {
+  const handleCardClick = (title: string) => {
+    // Scroll to relevant section or show info
+    if (title.includes('Range') || title.includes('Catalogue')) {
+      const categoriesSection = document.querySelector('[data-section="categories"]');
+      if (categoriesSection) {
+        categoriesSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4">
@@ -56,7 +66,8 @@ export const WhyChooseUs: React.FC = () => {
             return (
               <div
                 key={index}
-                className="group relative bg-white rounded-lg p-4 shadow-md hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-transparent overflow-hidden"
+                onClick={() => handleCardClick(feature.title)}
+                className="group relative bg-white rounded-lg p-4 shadow-md hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-transparent overflow-hidden cursor-pointer"
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
 

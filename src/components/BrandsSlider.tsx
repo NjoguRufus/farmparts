@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const brands = [
   { name: 'Baldwin', logo: 'https://farmpartsltd.com/wp-content/uploads/2015/03/bladwin-filters.jpg', image: true },
@@ -12,6 +13,7 @@ const brands = [
 ];
 
 export const BrandsSlider: React.FC = () => {
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -21,6 +23,12 @@ export const BrandsSlider: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleBrandClick = (brandName: string) => {
+    // Store brand filter and navigate to shop
+    sessionStorage.setItem('searchBrand', brandName);
+    navigate('/shop');
+  };
 
   return (
     <section className="py-16 bg-gray-50">
@@ -45,7 +53,10 @@ export const BrandsSlider: React.FC = () => {
                     : 'scale-100 opacity-60 hover:opacity-100'
                 }`}
               >
-                <div className="bg-white rounded-xl p-4 lg:p-6 shadow-md hover:shadow-xl transition-all duration-300">
+                <button
+                  onClick={() => handleBrandClick(brand.name)}
+                  className="w-full bg-white rounded-xl p-4 lg:p-6 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
+                >
                   <div className="text-center">
                     {brand.image ? (
                       <div className="flex items-center justify-center mb-2 h-12 sm:h-16 lg:h-20">
@@ -63,22 +74,10 @@ export const BrandsSlider: React.FC = () => {
                     )}
                     <div className="text-xs text-gray-500">{brand.name}</div>
                   </div>
-                </div>
+                </button>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="mt-12 bg-gradient-to-r from-[#0A1A3F] to-[#1A2F5F] text-white rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold mb-3">
-            Can't Find Your Brand? We Can Source It!
-          </h3>
-          <p className="text-gray-300 mb-6">
-            With our global network, we can source genuine parts from any manufacturer
-          </p>
-          <button className="bg-[#D4A017] hover:bg-[#B8880F] text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 hover:shadow-xl hover:scale-105">
-            Request a Part
-          </button>
         </div>
       </div>
     </section>

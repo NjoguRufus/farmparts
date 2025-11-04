@@ -1,69 +1,98 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getProductImage } from '../utils/imageMapper';
 
-const products = [
+const productsData = [
   {
     title: 'Perkins 2644H501 Fuel Filter - Genuine OEM',
     price: 'KSh 3,450',
-    image: 'Fuel Filter',
     inStock: true,
     oemNumber: '2644H501',
+    brand: 'Perkins',
+    category: 'Tractor Parts',
+    subcategory: 'Engine Components',
   },
   {
     title: 'Makita DHP484Z Cordless Hammer Driver Drill 18V',
     price: 'KSh 28,900',
-    image: 'Power Drill',
     inStock: true,
     oemNumber: 'DHP484Z',
+    brand: 'Makita',
+    category: 'Power Tools',
+    subcategory: 'Makita Tools',
   },
   {
     title: 'Bosch 0 986 494 294 Brake Pad Set - Front',
     price: 'KSh 5,200',
-    image: 'Brake Pads',
     inStock: true,
     oemNumber: '0986494294',
+    brand: 'Bosch',
+    category: 'Vehicle Parts',
+    subcategory: 'Brake Systems',
   },
   {
     title: 'Sparex S.67425 Hydraulic Filter Element',
     price: 'KSh 4,100',
-    image: 'Hydraulic Filter',
     inStock: true,
     oemNumber: 'S.67425',
+    brand: 'Sparex',
+    category: 'Tractor Parts',
+    subcategory: 'Hydraulic Systems',
   },
   {
     title: 'STIHL MS 250 Chainsaw 18" Bar Professional',
     price: 'KSh 42,500',
-    image: 'Chainsaw',
     inStock: true,
     oemNumber: 'MS250-18',
+    brand: 'STIHL',
+    category: 'Power Tools',
+    subcategory: 'STIHL Equipment',
   },
   {
     title: 'Federal-Mogul Champion RC12YC Spark Plug',
     price: 'KSh 850',
-    image: 'Spark Plug',
     inStock: true,
     oemNumber: 'RC12YC',
+    brand: 'Champion',
+    category: 'Workshop Items',
+    subcategory: 'Hand Tools',
   },
   {
     title: 'CNH Case IH Air Filter 84257511',
     price: 'KSh 6,750',
-    image: 'Air Filter',
     inStock: true,
     oemNumber: '84257511',
+    brand: 'Case IH',
+    category: 'Tractor Parts',
+    subcategory: 'Filters & Fluids',
   },
   {
     title: 'Castrol GTX 20W-50 Engine Oil 5L',
     price: 'KSh 3,200',
-    image: 'Engine Oil',
     inStock: true,
     oemNumber: 'GTX-20W50',
+    brand: 'Castrol',
+    category: 'Workshop Items',
+    subcategory: 'Lubricants & Oils',
   },
 ];
 
+// Map products with images
+const products = productsData.map(product => ({
+  ...product,
+  image: getProductImage(product),
+}));
+
 export const BestSellers: React.FC = () => {
+  const navigate = useNavigate();
   const [startIndex, setStartIndex] = useState(0);
   const itemsPerPage = 6;
+
+  const handleViewAll = () => {
+    navigate('/shop');
+  };
 
   const handlePrev = () => {
     setStartIndex(Math.max(0, startIndex - itemsPerPage));
@@ -76,7 +105,7 @@ export const BestSellers: React.FC = () => {
   const visibleProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-gray-50" data-section="products">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center mb-12">
           <div>
@@ -105,7 +134,7 @@ export const BestSellers: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {visibleProducts.map((product, index) => (
             <ProductCard key={index} {...product} />
           ))}
@@ -129,7 +158,10 @@ export const BestSellers: React.FC = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <button className="bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white px-8 py-4 rounded-lg font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105">
+          <button 
+            onClick={handleViewAll}
+            className="bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white px-8 py-4 rounded-lg font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
             View All Products
           </button>
         </div>

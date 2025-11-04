@@ -1,8 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Facebook, Instagram, Twitter, Linkedin, Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { showToast } = useNotification();
+  const [email, setEmail] = useState('');
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      // Store subscription (in a real app, this would send to a server)
+      const subscriptions = JSON.parse(localStorage.getItem('newsletterSubscriptions') || '[]');
+      if (!subscriptions.includes(email)) {
+        subscriptions.push(email);
+        localStorage.setItem('newsletterSubscriptions', JSON.stringify(subscriptions));
+        showToast('Thank you for subscribing to our newsletter!', 'success');
+        setEmail('');
+      } else {
+        showToast('This email is already subscribed!', 'warning');
+      }
+    }
+  };
 
   return (
     <footer className="bg-[#0A1A3F] text-white">
@@ -80,6 +99,11 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
+                <a href="/blog" className="text-gray-400 hover:text-white transition-colors">
+                  Blog
+                </a>
+              </li>
+              <li>
                 <a href="/contact" className="text-gray-400 hover:text-white transition-colors">
                   Contact
                 </a>
@@ -107,33 +131,33 @@ export const Footer: React.FC = () => {
               <div className="flex gap-3">
                 <MapPin size={20} className="text-[#D4A017] flex-shrink-0 mt-1" />
                 <div className="text-gray-400">
-                  <p className="font-semibold text-white mb-1">Main Store</p>
-                  <p>Industrial Area, Nairobi</p>
-                  <p>P.O. Box 12345-00100</p>
+                  <p className="font-semibold text-white mb-1">HEAD OFFICE NAKURU</p>
+                  <p>George Morara Avenue</p>
+                  <p>P.O Box 7117 – 20100</p>
+                  <p className="text-sm mt-1">Nakuru, Kenya</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <Phone size={20} className="text-[#D4A017] flex-shrink-0" />
                 <div className="text-gray-400">
-                  <p>+254 700 000 000</p>
-                  <p>+254 20 123 4567</p>
+                  <p>+254 727 817 817</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
                 <Mail size={20} className="text-[#D4A017] flex-shrink-0" />
                 <div className="text-gray-400">
-                  <p>info@farmparts.co.ke</p>
-                  <p>sales@farmparts.co.ke</p>
+                  <p>sales@farmpartsltd.com</p>
+                  <p>salesfarmpartsltd@gmail.com</p>
                 </div>
               </div>
 
               <div className="flex gap-3">
-                <Clock size={20} className="text-[#D4A017] flex-shrink-0" />
+                <MapPin size={20} className="text-[#D4A017] flex-shrink-0 mt-1" />
                 <div className="text-gray-400">
-                  <p>Mon - Fri: 8:00 AM - 6:00 PM</p>
-                  <p>Sat: 8:00 AM - 2:00 PM</p>
+                  <p className="font-semibold text-white mb-1">NAIROBI BRANCH</p>
+                  <p className="text-sm italic">COMING SOON!</p>
                 </div>
               </div>
             </div>
@@ -148,16 +172,22 @@ export const Footer: React.FC = () => {
             <p className="text-gray-400 text-center mb-4">
               Get updates on new arrivals, special offers, and parts availability
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="flex-1 px-4 py-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
               />
-              <button className="bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-xl transition-all duration-300">
+              <button 
+                type="submit"
+                className="bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white px-6 py-3 rounded-lg font-semibold hover:shadow-xl transition-all duration-300"
+              >
                 Subscribe
               </button>
-            </div>
+            </form>
           </div>
         </div>
 

@@ -1,9 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Heart, ArrowLeftRight, User, Menu, X, ChevronDown } from 'lucide-react';
+import { useNotification } from '../contexts/NotificationContext';
+import { Tractor } from 'lucide-react';
 
 export const Header: React.FC = () => {
+  const navigate = useNavigate();
+  const { showToast } = useNotification();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [compareCount, setCompareCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const updateCounts = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      const compare = JSON.parse(localStorage.getItem('compare') || '[]');
+      setCartCount(cart.length);
+      setWishlistCount(wishlist.length);
+      setCompareCount(compare.length);
+    };
+
+    updateCounts();
+    window.addEventListener('cartUpdated', updateCounts);
+    window.addEventListener('wishlistUpdated', updateCounts);
+    window.addEventListener('compareUpdated', updateCounts);
+
+    return () => {
+      window.removeEventListener('cartUpdated', updateCounts);
+      window.removeEventListener('wishlistUpdated', updateCounts);
+      window.removeEventListener('compareUpdated', updateCounts);
+    };
+  }, []);
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      sessionStorage.setItem('searchQuery', searchQuery);
+      navigate('/shop');
+    }
+  };
+
+  const handleCartClick = () => {
+    navigate('/cart');
+  };
+
+  const handleShopCategory = (category: string, subcategory?: string) => {
+    sessionStorage.setItem('searchCategory', category);
+    if (subcategory) {
+      sessionStorage.setItem('searchSubcategory', subcategory);
+    }
+    navigate('/shop');
+    setMegaMenuOpen(false);
+  };
+
+  const handleWishlistClick = () => {
+    navigate('/wishlist');
+  };
+
+  const handleCompareClick = () => {
+    const compare = JSON.parse(localStorage.getItem('compare') || '[]');
+    if (compare.length > 0) {
+      showToast(`${compare.length} product${compare.length > 1 ? 's' : ''} in compare list`, 'info');
+    } else {
+      showToast('No products to compare', 'warning');
+    }
+  };
+
+  const handleAccountClick = () => {
+    showToast('Account management coming soon!', 'info');
+  };
 
   return (
     <>
@@ -29,13 +97,13 @@ export const Header: React.FC = () => {
               >
                 {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
-              <div className="flex items-center gap-2">
+              <Link to="/" className="flex items-center gap-2">
                 <img 
                   src="/Logos/farmparts logos/2.png" 
                   alt="Farmparts Logo" 
                   className="h-8 w-auto object-contain"
                 />
-              </div>
+              </Link>
             </div>
 
             <div className="flex-1 max-w-2xl hidden md:block">
@@ -43,31 +111,63 @@ export const Header: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search by part number, brand or vehicle..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017] transition-colors"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white p-2 rounded-lg hover:shadow-lg transition-all">
+                <button 
+                  onClick={handleSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white p-2 rounded-lg hover:shadow-lg transition-all"
+                >
                   <Search size={20} />
                 </button>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <button 
+                onClick={handleWishlistClick}
+                className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                title="Wishlist"
+              >
                 <Heart size={20} />
                 <span className="hidden xl:inline text-sm">Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {wishlistCount}
+                  </span>
+                )}
               </button>
-              <button className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <button 
+                onClick={handleCompareClick}
+                className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                title="Compare"
+              >
                 <ArrowLeftRight size={20} />
                 <span className="hidden xl:inline text-sm">Compare</span>
+                {compareCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {compareCount}
+                  </span>
+                )}
               </button>
-              <button className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <button 
+                onClick={handleAccountClick}
+                className="hidden lg:flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Account"
+              >
                 <User size={20} />
                 <span className="hidden xl:inline text-sm">Account</span>
               </button>
-              <button className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white rounded-lg hover:shadow-lg transition-all">
+              <button 
+                onClick={handleCartClick}
+                className="relative flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4A017] to-[#B8880F] text-white rounded-lg hover:shadow-lg transition-all"
+                title="Shopping Cart"
+              >
                 <ShoppingCart size={20} />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  0
+                  {cartCount}
                 </span>
               </button>
               <a
@@ -89,9 +189,15 @@ export const Header: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search parts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 className="w-full px-4 py-2 pr-12 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
               />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#D4A017] text-white p-1.5 rounded-lg">
+              <button 
+                onClick={handleSearch}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#D4A017] text-white p-1.5 rounded-lg"
+              >
                 <Search size={18} />
               </button>
             </div>
@@ -102,9 +208,9 @@ export const Header: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4">
             <ul className="flex items-center justify-center gap-8 py-2">
               <li>
-                <a href="/" className="hover:text-[#D4A017] transition-colors font-semibold">
+                <Link to="/" className="hover:text-[#D4A017] transition-colors font-semibold">
                   Home
-                </a>
+                </Link>
               </li>
               <li
                 className="relative"
@@ -116,24 +222,29 @@ export const Header: React.FC = () => {
                 </button>
               </li>
               <li>
-                <a href="/service" className="hover:text-[#D4A017] transition-colors font-semibold">
+                <Link to="/service" className="hover:text-[#D4A017] transition-colors font-semibold">
                   Car Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/about" className="hover:text-[#D4A017] transition-colors font-semibold">
+                <Link to="/about" className="hover:text-[#D4A017] transition-colors font-semibold">
                   About
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/gallery" className="hover:text-[#D4A017] transition-colors font-semibold">
+                <Link to="/gallery" className="hover:text-[#D4A017] transition-colors font-semibold">
                   Gallery
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="hover:text-[#D4A017] transition-colors font-semibold">
+                <Link to="/blog" className="hover:text-[#D4A017] transition-colors font-semibold">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-[#D4A017] transition-colors font-semibold">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -149,14 +260,14 @@ export const Header: React.FC = () => {
               <div className="grid grid-cols-4 gap-8">
                 <div>
                   <h3 className="font-bold text-[#0A1A3F] mb-4 flex items-center gap-2">
-                    🚜 Tractor Parts
+                    <Tractor size={18} className="text-[#0A1A3F]" /> Tractor Parts
                   </h3>
                   <ul className="space-y-2 text-gray-700">
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Engine Components</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Transmission Parts</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Hydraulic Systems</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Electrical Parts</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Filters & Fluids</a></li>
+                    <li><button onClick={() => handleShopCategory('Tractor Parts', 'Engine Components')} className="hover:text-[#D4A017] transition-colors text-left">Engine Components</button></li>
+                    <li><button onClick={() => handleShopCategory('Tractor Parts', 'Transmission Parts')} className="hover:text-[#D4A017] transition-colors text-left">Transmission Parts</button></li>
+                    <li><button onClick={() => handleShopCategory('Tractor Parts', 'Hydraulic Systems')} className="hover:text-[#D4A017] transition-colors text-left">Hydraulic Systems</button></li>
+                    <li><button onClick={() => handleShopCategory('Tractor Parts', 'Electrical Parts')} className="hover:text-[#D4A017] transition-colors text-left">Electrical Parts</button></li>
+                    <li><button onClick={() => handleShopCategory('Tractor Parts', 'Filters & Fluids')} className="hover:text-[#D4A017] transition-colors text-left">Filters & Fluids</button></li>
                   </ul>
                 </div>
                 <div>
@@ -164,11 +275,11 @@ export const Header: React.FC = () => {
                     🚗 Vehicle Parts
                   </h3>
                   <ul className="space-y-2 text-gray-700">
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Brake Systems</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Suspension & Steering</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Engine Parts</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Cooling System</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Exhaust Systems</a></li>
+                    <li><button onClick={() => handleShopCategory('Vehicle Parts', 'Brake Systems')} className="hover:text-[#D4A017] transition-colors text-left">Brake Systems</button></li>
+                    <li><button onClick={() => handleShopCategory('Vehicle Parts', 'Suspension & Steering')} className="hover:text-[#D4A017] transition-colors text-left">Suspension & Steering</button></li>
+                    <li><button onClick={() => handleShopCategory('Vehicle Parts', 'Engine Parts')} className="hover:text-[#D4A017] transition-colors text-left">Engine Parts</button></li>
+                    <li><button onClick={() => handleShopCategory('Vehicle Parts', 'Cooling System')} className="hover:text-[#D4A017] transition-colors text-left">Cooling System</button></li>
+                    <li><button onClick={() => handleShopCategory('Vehicle Parts', 'Exhaust Systems')} className="hover:text-[#D4A017] transition-colors text-left">Exhaust Systems</button></li>
                   </ul>
                 </div>
                 <div>
@@ -176,11 +287,11 @@ export const Header: React.FC = () => {
                     ⚙️ Power Tools
                   </h3>
                   <ul className="space-y-2 text-gray-700">
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Makita Tools</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Bosch Professional</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">STIHL Equipment</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Drills & Drivers</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Cutting Tools</a></li>
+                    <li><button onClick={() => handleShopCategory('Power Tools', 'Makita Tools')} className="hover:text-[#D4A017] transition-colors text-left">Makita Tools</button></li>
+                    <li><button onClick={() => handleShopCategory('Power Tools', 'Bosch Professional')} className="hover:text-[#D4A017] transition-colors text-left">Bosch Professional</button></li>
+                    <li><button onClick={() => handleShopCategory('Power Tools', 'STIHL Equipment')} className="hover:text-[#D4A017] transition-colors text-left">STIHL Equipment</button></li>
+                    <li><button onClick={() => handleShopCategory('Power Tools', 'Drills & Drivers')} className="hover:text-[#D4A017] transition-colors text-left">Drills & Drivers</button></li>
+                    <li><button onClick={() => handleShopCategory('Power Tools', 'Cutting Tools')} className="hover:text-[#D4A017] transition-colors text-left">Cutting Tools</button></li>
                   </ul>
                 </div>
                 <div>
@@ -188,11 +299,11 @@ export const Header: React.FC = () => {
                     🔧 Workshop Items
                   </h3>
                   <ul className="space-y-2 text-gray-700">
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Hand Tools</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Diagnostic Equipment</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Lubricants & Oils</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Safety Equipment</a></li>
-                    <li><a href="#" className="hover:text-[#D4A017] transition-colors">Workshop Supplies</a></li>
+                    <li><button onClick={() => handleShopCategory('Workshop Items', 'Hand Tools')} className="hover:text-[#D4A017] transition-colors text-left">Hand Tools</button></li>
+                    <li><button onClick={() => handleShopCategory('Workshop Items', 'Diagnostic Equipment')} className="hover:text-[#D4A017] transition-colors text-left">Diagnostic Equipment</button></li>
+                    <li><button onClick={() => handleShopCategory('Workshop Items', 'Lubricants & Oils')} className="hover:text-[#D4A017] transition-colors text-left">Lubricants & Oils</button></li>
+                    <li><button onClick={() => handleShopCategory('Workshop Items', 'Safety Equipment')} className="hover:text-[#D4A017] transition-colors text-left">Safety Equipment</button></li>
+                    <li><button onClick={() => handleShopCategory('Workshop Items', 'Workshop Supplies')} className="hover:text-[#D4A017] transition-colors text-left">Workshop Supplies</button></li>
                   </ul>
                 </div>
               </div>
@@ -213,12 +324,13 @@ export const Header: React.FC = () => {
               </div>
               <nav>
                 <ul className="space-y-4">
-                  <li><a href="/" className="block py-2 text-lg hover:text-[#D4A017]">Home</a></li>
-                  <li><a href="/shop" className="block py-2 text-lg hover:text-[#D4A017]">Shop</a></li>
-                  <li><a href="/service" className="block py-2 text-lg hover:text-[#D4A017]">Car Service</a></li>
-                  <li><a href="/about" className="block py-2 text-lg hover:text-[#D4A017]">About</a></li>
-                  <li><a href="/gallery" className="block py-2 text-lg hover:text-[#D4A017]">Gallery</a></li>
-                  <li><a href="/contact" className="block py-2 text-lg hover:text-[#D4A017]">Contact</a></li>
+                  <li><Link to="/" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Home</Link></li>
+                  <li><Link to="/shop" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Shop</Link></li>
+                  <li><Link to="/service" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Car Service</Link></li>
+                  <li><Link to="/about" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>About</Link></li>
+                  <li><Link to="/gallery" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Gallery</Link></li>
+                  <li><Link to="/blog" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Blog</Link></li>
+                  <li><Link to="/contact" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Contact</Link></li>
                 </ul>
               </nav>
             </div>

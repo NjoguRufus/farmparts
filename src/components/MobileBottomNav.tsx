@@ -1,44 +1,117 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Search, Grid3x3, ShoppingCart } from 'lucide-react';
 
 export const MobileBottomNav: React.FC = () => {
+  const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      setCartCount(cart.length);
+    };
+
+    updateCartCount();
+    window.addEventListener('cartUpdated', updateCartCount);
+
+    return () => {
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
+  }, []);
+
+  const handleHome = () => {
+    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearchClick = () => {
+    setShowSearch(true);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      sessionStorage.setItem('searchQuery', searchQuery);
+      navigate('/shop');
+      setShowSearch(false);
+      setSearchQuery('');
+    }
+  };
+
+  const handleCategories = () => {
+    navigate('/shop');
+  };
+
+  const handleCart = () => {
+    navigate('/cart');
+  };
+
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
-      <div className="grid grid-cols-5 h-16">
-        <a
-          href="/"
-          className="flex flex-col items-center justify-center gap-1 text-[#0A1A3F] hover:bg-gray-50 transition-colors"
-        >
-          <Home size={22} />
-          <span className="text-xs font-medium">Home</span>
-        </a>
+    <>
+      {showSearch && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowSearch(false)}>
+          <div className="bg-white p-4 mt-20 mx-4 rounded-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search parts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
+                autoFocus
+              />
+              <button 
+                onClick={handleSearch}
+                className="bg-[#D4A017] text-white px-4 py-2 rounded-lg"
+              >
+                <Search size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <a
-          href="/search"
-          className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors"
-        >
-          <Search size={22} />
-          <span className="text-xs font-medium">Search</span>
-        </a>
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
+        <div className="grid grid-cols-5 h-16">
+          <button
+            onClick={handleHome}
+            className="flex flex-col items-center justify-center gap-1 text-[#0A1A3F] hover:bg-gray-50 transition-colors"
+          >
+            <Home size={22} />
+            <span className="text-xs font-medium">Home</span>
+          </button>
 
-        <a
-          href="/shop"
-          className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors"
-        >
-          <Grid3x3 size={22} />
-          <span className="text-xs font-medium">Categories</span>
-        </a>
+          <button
+            onClick={handleSearchClick}
+            className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors"
+          >
+            <Search size={22} />
+            <span className="text-xs font-medium">Search</span>
+          </button>
 
-        <a
-          href="/cart"
-          className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors relative"
-        >
-          <ShoppingCart size={22} />
-          <span className="text-xs font-medium">Cart</span>
-          <span className="absolute top-1.5 right-1/4 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-            0
-          </span>
-        </a>
+          <button
+            onClick={handleCategories}
+            className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors"
+          >
+            <Grid3x3 size={22} />
+            <span className="text-xs font-medium">Categories</span>
+          </button>
+
+          <button
+            onClick={handleCart}
+            className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors relative"
+          >
+            <ShoppingCart size={22} />
+            <span className="text-xs font-medium">Cart</span>
+            {cartCount > 0 && (
+              <span className="absolute top-1.5 right-1/4 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {cartCount}
+              </span>
+            )}
+          </button>
 
         <a
           href="https://wa.me/254700000000"
@@ -51,7 +124,8 @@ export const MobileBottomNav: React.FC = () => {
           </svg>
           <span className="text-xs font-medium">WhatsApp</span>
         </a>
-      </div>
-    </nav>
+        </div>
+      </nav>
+    </>
   );
 };

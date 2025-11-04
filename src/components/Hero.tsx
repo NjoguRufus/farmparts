@@ -1,8 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { Search, Wrench } from 'lucide-react';
+import { BookServiceModal } from './BookServiceModal';
 
 export const Hero: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('All Categories');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+
+  const handleShopParts = () => {
+    navigate('/shop');
+  };
+
+  const handleBookService = () => {
+    setShowServiceModal(true);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      // Store search query and navigate to shop
+      sessionStorage.setItem('searchQuery', searchQuery);
+      sessionStorage.setItem('searchCategory', category);
+      navigate('/shop');
+    }
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-[#0A1A3F] via-[#1A2F5F] to-[#0A1A3F] text-white overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -24,11 +54,19 @@ export const Hero: React.FC = () => {
               Genuine Agricultural and Automotive Parts
             </h1>
             <div className="flex flex-row gap-2 lg:gap-3 pt-2">
-              <Button variant="gold" className="text-xs sm:text-sm lg:text-lg px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4 flex-1 lg:flex-initial">
+              <Button 
+                variant="gold" 
+                onClick={handleShopParts}
+                className="text-xs sm:text-sm lg:text-lg px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4 flex-1 lg:flex-initial"
+              >
                 <Search className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
                 <span className="whitespace-nowrap">Shop Parts</span>
               </Button>
-              <Button variant="outline" className="text-xs sm:text-sm lg:text-lg px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4 flex-1 lg:flex-initial">
+              <Button 
+                variant="outline" 
+                onClick={handleBookService}
+                className="text-xs sm:text-sm lg:text-lg px-3 py-2 sm:px-4 sm:py-2.5 lg:px-8 lg:py-4 flex-1 lg:flex-initial"
+              >
                 <Wrench className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" />
                 <span className="whitespace-nowrap">Book Car Service</span>
               </Button>
@@ -52,16 +90,13 @@ export const Hero: React.FC = () => {
           </div>
 
           <div className="relative hidden lg:block">
-            <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="aspect-square bg-gradient-to-br from-[#D4A017]/20 to-transparent rounded-xl flex items-center justify-center">
+            <div className="bg-gray-100 rounded-lg p-8">
+              <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
                 <div className="text-center space-y-3">
                   <div className="text-6xl">🔧</div>
-                  <p className="text-lg font-semibold">Premium Parts</p>
-                  <p className="text-gray-300 text-sm">For All Your Machinery</p>
+                  <p className="text-lg font-semibold text-gray-700">Premium Parts</p>
+                  <p className="text-gray-500 text-sm">For All Your Machinery</p>
                 </div>
-              </div>
-              <div className="absolute -top-4 -right-4 bg-[#D4A017] text-white rounded-full w-20 h-20 flex items-center justify-center font-bold text-center text-xs shadow-xl">
-                Award Winning Dealer
               </div>
             </div>
           </div>
@@ -73,16 +108,56 @@ export const Hero: React.FC = () => {
               <input
                 type="text"
                 placeholder="Enter part number, vehicle model, or machinery type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleSearchKeyPress}
                 className="flex-1 px-4 py-2.5 lg:py-3 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4A017] text-sm lg:text-base"
               />
-              <select className="px-4 py-2.5 lg:py-3 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#D4A017] text-sm lg:text-base">
+              <select 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="px-4 py-2.5 lg:py-3 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#D4A017] text-sm lg:text-base"
+              >
                 <option>All Categories</option>
-                <option>Tractor Parts</option>
-                <option>Vehicle Parts</option>
-                <option>Power Tools</option>
-                <option>Engine Components</option>
+                <option>New Holland Parts / Ford</option>
+                <option>FP Agri Tractors</option>
+                <option>CASE SPARE PARTS</option>
+                <option>Cummins Spare Parts</option>
+                <option>ACCESSORIES</option>
+                <option>DIY TOOLS</option>
+                <option>FILTERS</option>
+                <option>Plough Parts</option>
+                <option>Agco Spare Parts</option>
+                <option>ATS England</option>
+                <option>Perkins Spare Parts</option>
+                <option>Massey Ferguson Spare Parts</option>
+                <option>Bosch Spare Parts</option>
+                <option>Bosch Power Tools</option>
+                <option>Makita Power Tools</option>
+                <option>STIHL Tools</option>
+                <option>KARCHER POWER WASHER</option>
+                <option>Force Tools</option>
+                <option>Sparex England</option>
+                <option>John Deere Replacement Parts</option>
+                <option>Claas Spare Parts</option>
+                <option>JCB Parts</option>
+                <option>Deutz Spare Parts</option>
+                <option>Agro Master</option>
+                <option>Toyota Car Parts: Genuine Spare Parts</option>
+                <option>ISUZU SPARE PARTS</option>
+                <option>Mitsubishi Parts</option>
+                <option>Nissan Spare Parts</option>
+                <option>Landrover Parts</option>
+                <option>VW Spare Parts</option>
+                <option>Mercedes Spare Parts</option>
+                <option>BMW SPARE PARTS</option>
+                <option>VOLVO SPARE PARTS</option>
+                <option>Mahindra Bolero Parts</option>
+                <option>CAR CARE PRODUCTS</option>
+                <option>SECOND HAND FARM MACHINERY</option>
+                <option>Farm Parts</option>
               </select>
-              <Button variant="gold" size="lg">
+              <Button variant="gold" size="lg" onClick={handleSearch}>
                 <Search size={18} />
                 Search
               </Button>
@@ -92,6 +167,8 @@ export const Hero: React.FC = () => {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
+      
+      <BookServiceModal isOpen={showServiceModal} onClose={() => setShowServiceModal(false)} />
     </section>
   );
 };
