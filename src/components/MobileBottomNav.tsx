@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Search, Grid3x3, ShoppingCart, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { Home, Search, Grid3x3, ShoppingCart, X, ChevronDown, ChevronRight, Heart } from 'lucide-react';
 import { allProducts } from '../utils/products';
 import { useNotification } from '../contexts/NotificationContext';
 
 export const MobileBottomNav: React.FC = () => {
   const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategories, setShowCategories] = useState(false);
@@ -19,12 +20,19 @@ export const MobileBottomNav: React.FC = () => {
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       setCartCount(cart.length);
     };
+    const updateWishlistCount = () => {
+      const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+      setWishlistCount(wishlist.length);
+    };
 
     updateCartCount();
+    updateWishlistCount();
     window.addEventListener('cartUpdated', updateCartCount);
+    window.addEventListener('wishlistUpdated', updateWishlistCount);
 
     return () => {
       window.removeEventListener('cartUpdated', updateCartCount);
+      window.removeEventListener('wishlistUpdated', updateWishlistCount);
     };
   }, []);
 
@@ -69,6 +77,9 @@ export const MobileBottomNav: React.FC = () => {
 
   const handleCart = () => {
     navigate('/cart');
+  };
+  const handleWishlist = () => {
+    navigate('/wishlist');
   };
 
   // Close this sidebar when the hamburger menu opens
@@ -214,11 +225,16 @@ export const MobileBottomNav: React.FC = () => {
           </button>
 
           <button
-            onClick={handleSearchClick}
-            className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors"
+            onClick={handleWishlist}
+            className="flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-[#0A1A3F] hover:bg-gray-50 transition-colors relative"
           >
-            <Search size={22} />
-            <span className="text-xs font-medium">Search</span>
+            <Heart size={22} />
+            <span className="text-xs font-medium">Wishlist</span>
+            {wishlistCount > 0 && (
+              <span className="absolute top-1.5 right-1/4 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {wishlistCount}
+              </span>
+            )}
           </button>
 
           <button
