@@ -8,6 +8,7 @@ interface CartItem {
   price: string;
   oemNumber?: string;
   quantity?: number;
+  image?: string;
 }
 
 export const Cart: React.FC = () => {
@@ -110,8 +111,12 @@ export const Cart: React.FC = () => {
 
                   return (
                     <div key={index} className="flex gap-4 p-4 border border-gray-200 rounded-lg">
-                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-gray-400">Product</span>
+                      <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        {item.image ? (
+                          <img src={item.image} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-400 text-xs">{item.title}</div>
+                        )}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-[#0A1A3F] mb-1">{item.title}</h3>

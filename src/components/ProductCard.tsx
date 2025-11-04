@@ -34,7 +34,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     } else {
       // Default behavior - show notification
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-      cart.push({ title, price, oemNumber });
+      cart.push({ title, price, oemNumber, image, inStock });
       localStorage.setItem('cart', JSON.stringify(cart));
       showToast(`${title} added to cart!`, 'success');
       // Trigger cart update event
@@ -49,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     } else {
       const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
       if (!wishlist.find((item: any) => item.oemNumber === oemNumber)) {
-        wishlist.push({ title, price, oemNumber });
+        wishlist.push({ title, price, oemNumber, image, inStock });
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
         showToast(`${title} added to wishlist!`, 'success');
         window.dispatchEvent(new Event('wishlistUpdated'));

@@ -146,10 +146,14 @@ export const Wishlist: React.FC = () => {
             <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden group relative">
               {/* Product Image */}
               <div className="relative overflow-hidden bg-gray-100">
-                <div className="aspect-square flex items-center justify-center p-6">
-                  <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-sm">
-                    {item.image || 'Product Image'}
-                  </div>
+                <div className="aspect-square flex items-center justify-center p-0 overflow-hidden">
+                  {item.image ? (
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center text-gray-400 text-sm">
+                      {item.title}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Remove from Wishlist Button */}
