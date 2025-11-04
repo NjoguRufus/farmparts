@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Heart, ArrowLeftRight, User, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, ShoppingCart, Heart, ArrowLeftRight, User, Menu, X, ChevronDown, Home, ShoppingBag, Wrench, Info, Images, Newspaper, Phone } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
 import { Tractor } from 'lucide-react';
 import { allProducts } from '../utils/products';
@@ -10,6 +10,7 @@ export const Header: React.FC = () => {
   const { showToast } = useNotification();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [hideTopSearch, setHideTopSearch] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [compareCount, setCompareCount] = useState(0);
@@ -34,6 +35,24 @@ export const Header: React.FC = () => {
       window.removeEventListener('cartUpdated', updateCounts);
       window.removeEventListener('wishlistUpdated', updateCounts);
       window.removeEventListener('compareUpdated', updateCounts);
+    };
+  }, []);
+
+  // Listen for other sidebars opening (e.g., Categories) and close this one
+  useEffect(() => {
+    const handleSidebarOpen = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail === 'categories') {
+        setMobileMenuOpen(false);
+        setHideTopSearch(true);
+      }
+    };
+    const handleSidebarClose = () => setHideTopSearch(false);
+    window.addEventListener('sidebarOpen', handleSidebarOpen as EventListener);
+    window.addEventListener('sidebarClose', handleSidebarClose as EventListener);
+    return () => {
+      window.removeEventListener('sidebarOpen', handleSidebarOpen as EventListener);
+      window.removeEventListener('sidebarClose', handleSidebarClose as EventListener);
     };
   }, []);
 
@@ -103,7 +122,17 @@ export const Header: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 className="lg:hidden p-2"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                onClick={() => {
+                  const next = !mobileMenuOpen;
+                  setMobileMenuOpen(next);
+                  if (next) {
+                    window.dispatchEvent(new CustomEvent('sidebarOpen', { detail: 'menu' }));
+                    setHideTopSearch(true);
+                  } else {
+                    window.dispatchEvent(new CustomEvent('sidebarClose'));
+                    setHideTopSearch(false);
+                  }
+                }}
               >
                 {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -116,6 +145,7 @@ export const Header: React.FC = () => {
               </Link>
             </div>
 
+            {!hideTopSearch && (
             <div className="flex-1 max-w-2xl hidden md:block">
               <div className="relative">
                 <input
@@ -134,6 +164,7 @@ export const Header: React.FC = () => {
                 </button>
               </div>
             </div>
+            )}
 
             <div className="flex items-center gap-2">
               <button 
@@ -194,6 +225,7 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
+        {!hideTopSearch && (
           <div className="md:hidden mt-2">
             <div className="relative">
               <input
@@ -212,6 +244,7 @@ export const Header: React.FC = () => {
               </button>
             </div>
           </div>
+        )}
         </div>
 
         <nav className="bg-[#0A1A3F] text-white hidden lg:block">
@@ -323,24 +356,59 @@ export const Header: React.FC = () => {
       </header>
 
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)}>
-          <div className="bg-white w-80 h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => { setMobileMenuOpen(false); setHideTopSearch(false); window.dispatchEvent(new CustomEvent('sidebarClose')); }}>
+          <div className="bg-white w-72 h-full overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-[#0A1A3F]">Menu</h2>
-                <button onClick={() => setMobileMenuOpen(false)}>
+                <button onClick={() => { setMobileMenuOpen(false); setHideTopSearch(false); window.dispatchEvent(new CustomEvent('sidebarClose')); }}>
                   <X size={24} />
                 </button>
               </div>
               <nav>
-                <ul className="space-y-4">
-                  <li><Link to="/" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Home</Link></li>
-                  <li><Link to="/shop" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Shop</Link></li>
-                  <li><Link to="/service" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Car Service</Link></li>
-                  <li><Link to="/about" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>About</Link></li>
-                  <li><Link to="/gallery" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Gallery</Link></li>
-                  <li><Link to="/blog" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Blog</Link></li>
-                  <li><Link to="/contact" className="block py-2 text-lg hover:text-[#D4A017]" onClick={() => setMobileMenuOpen(false)}>Contact</Link></li>
+                <ul className="space-y-3">
+                  <li>
+                    <Link to="/" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Home size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Home</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/shop" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <ShoppingBag size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Shop</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/service" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Wrench size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Car Service</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/about" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Info size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">About</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/gallery" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Images size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Gallery</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/blog" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Newspaper size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Blog</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="flex items-center gap-3 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50" onClick={() => setMobileMenuOpen(false)}>
+                      <Phone size={18} className="text-[#0A1A3F]" />
+                      <span className="text-base">Contact</span>
+                    </Link>
+                  </li>
                 </ul>
               </nav>
             </div>

@@ -56,22 +56,40 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   const handleCategories = () => {
-    setShowCategories(true);
+    setShowCategories((prev) => {
+      const next = !prev;
+      if (next) {
+        window.dispatchEvent(new CustomEvent('sidebarOpen', { detail: 'categories' }));
+      } else {
+        window.dispatchEvent(new CustomEvent('sidebarClose'));
+      }
+      return next;
+    });
   };
 
   const handleCart = () => {
     navigate('/cart');
   };
 
+  // Close this sidebar when the hamburger menu opens
+  useEffect(() => {
+    const handleSidebarOpen = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail === 'menu') setShowCategories(false);
+    };
+    window.addEventListener('sidebarOpen', handleSidebarOpen as EventListener);
+    return () => window.removeEventListener('sidebarOpen', handleSidebarOpen as EventListener);
+  }, []);
+
   return (
     <>
       {/* Categories Sidebar (Mobile) */}
       {showCategories && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowCategories(false)}>
-          <div className="bg-white w-80 h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => { setShowCategories(false); window.dispatchEvent(new CustomEvent('sidebarClose')); }}>
+          <div className="bg-white w-72 h-full overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
               <h3 className="text-lg font-bold text-[#0A1A3F]">Categories</h3>
-              <button onClick={() => setShowCategories(false)} className="p-1 rounded hover:bg-gray-100">
+              <button onClick={() => { setShowCategories(false); window.dispatchEvent(new CustomEvent('sidebarClose')); }} className="p-1 rounded hover:bg-gray-100">
                 <X size={22} />
               </button>
             </div>
@@ -116,7 +134,7 @@ export const MobileBottomNav: React.FC = () => {
                         <li key={name} className="py-2">
                           <button
                             onClick={() => setExpandedCategory(isOpen ? null : name)}
-                            className="w-full flex items-center justify-between text-left px-2 py-2 rounded hover:bg-gray-50"
+                            className="w-full flex items-center justify-between text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
                           >
                             <span className="text-sm font-medium text-[#0A1A3F] line-clamp-1">{name}</span>
                             <span className="flex items-center gap-2 text-xs text-gray-500">
@@ -126,7 +144,7 @@ export const MobileBottomNav: React.FC = () => {
                           </button>
 
                           {isOpen && (
-                            <div className="mt-2 ml-2">
+                            <div className="mt-2 ml-1">
                               <button
                                 onClick={() => handleGoToCategory(name)}
                                 className="mb-2 text-xs text-[#D4A017] hover:underline"
@@ -141,7 +159,7 @@ export const MobileBottomNav: React.FC = () => {
                                         setShowCategories(false);
                                         navigate(`/product/${p.id}`);
                                       }}
-                                      className="w-full text-left text-sm px-2 py-1 rounded hover:bg-gray-50 line-clamp-1"
+                                      className="w-full text-left text-sm px-2 py-1 rounded border border-gray-100 hover:bg-gray-50 line-clamp-1"
                                       title={p.title}
                                     >
                                       {p.title}
