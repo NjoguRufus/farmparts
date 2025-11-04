@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProductImage } from '../utils/imageMapper';
+import { allProducts } from '../utils/products';
 
 const productsData = [
   {
@@ -79,11 +80,15 @@ const productsData = [
   },
 ];
 
-// Map products with images
-const products = productsData.map(product => ({
-  ...product,
-  image: getProductImage(product),
-}));
+// Map products to real catalog entries when possible, with images and IDs
+const products = productsData.map((product) => {
+  const match = allProducts.find((p) =>
+    (product.oemNumber && p.oemNumber && p.oemNumber.toUpperCase() === product.oemNumber.toUpperCase()) ||
+    p.title.toLowerCase() === product.title.toLowerCase()
+  );
+  const image = match?.image || getProductImage(product);
+  return { ...product, id: match?.id, image } as any;
+});
 
 export const BestSellers: React.FC = () => {
   const navigate = useNavigate();
@@ -136,7 +141,21 @@ export const BestSellers: React.FC = () => {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {visibleProducts.map((product, index) => (
-            <ProductCard key={index} {...product} />
+            <ProductCard
+              key={index}
+              {...product}
+              onClick={() => {
+                if ((product as any).id) {
+                  navigate(`/product/${(product as any).id}`);
+                } else {
+                  // Fallback: go to shop with category preselected if available
+                  if ((product as any).category) {
+                    sessionStorage.setItem('searchCategory', (product as any).category);
+                  }
+                  navigate('/shop');
+                }
+              }}
+            />
           ))}
         </div>
 

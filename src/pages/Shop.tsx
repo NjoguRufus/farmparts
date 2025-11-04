@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { Search, Filter, X } from 'lucide-react';
 import { allProducts } from '../utils/products';
+import { useNotification } from '../contexts/NotificationContext';
 
 const categories = [
   'All Categories',
@@ -60,6 +61,7 @@ export const Shop: React.FC = () => {
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     // Check for search query from sessionStorage
@@ -159,17 +161,27 @@ export const Shop: React.FC = () => {
                 placeholder="Search by part number, brand, or vehicle..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    showToast(
+                      filteredProducts.length
+                        ? `${filteredProducts.length} product${filteredProducts.length>1?'s':''} found`
+                        : 'No products found',
+                      filteredProducts.length ? 'success' : 'warning'
+                    );
+                  }
+                }}
                 className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2">
               <select
                 value={selectedCategory}
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
                   setSelectedSubcategory('All Subcategories');
                 }}
-                className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
+                className="w-full min-w-0 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -179,7 +191,7 @@ export const Shop: React.FC = () => {
                 <select
                   value={selectedSubcategory}
                   onChange={(e) => setSelectedSubcategory(e.target.value)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
+                  className="w-full min-w-0 px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
                 >
                   <option>All Subcategories</option>
                   {availableSubcategories.map(subcat => (
@@ -189,7 +201,7 @@ export const Shop: React.FC = () => {
               )}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden px-4 py-3 bg-[#0A1A3F] text-white rounded-lg flex items-center gap-2"
+                className="md:hidden w-full sm:w-auto px-4 py-3 bg-[#0A1A3F] text-white rounded-lg flex items-center justify-center gap-2"
               >
                 <Filter size={20} />
                 Filters

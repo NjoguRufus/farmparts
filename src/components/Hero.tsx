@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { Search, Wrench } from 'lucide-react';
 import { BookServiceModal } from './BookServiceModal';
+import { useNotification } from '../contexts/NotificationContext';
+import { allProducts } from '../utils/products';
 
 export const Hero: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [category, setCategory] = useState('All Categories');
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const { showToast } = useNotification();
 
   const handleShopParts = () => {
     navigate('/shop');
@@ -20,7 +23,21 @@ export const Hero: React.FC = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      // Store search query and navigate to shop
+      const query = searchQuery.toLowerCase();
+      const results = allProducts.filter((p) =>
+        (!category || category === 'All Categories' || p.category === category) &&
+        (
+          p.title.toLowerCase().includes(query) ||
+          (p.oemNumber || '').toLowerCase().includes(query) ||
+          (p.brand || '').toLowerCase().includes(query) ||
+          (p.subcategory || '').toLowerCase().includes(query)
+        )
+      );
+      if (results.length > 0) {
+        showToast(`${results.length} product${results.length > 1 ? 's' : ''} found`, 'success');
+      } else {
+        showToast('No products found. Try another term.', 'warning');
+      }
       sessionStorage.setItem('searchQuery', searchQuery);
       sessionStorage.setItem('searchCategory', category);
       navigate('/shop');
@@ -90,20 +107,21 @@ export const Hero: React.FC = () => {
           </div>
 
           <div className="relative hidden lg:block">
-            <div className="bg-gray-100 rounded-lg p-8">
-              <div className="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                <div className="text-center space-y-3">
-                  <div className="text-6xl">🔧</div>
-                  <p className="text-lg font-semibold text-gray-700">Premium Parts</p>
-                  <p className="text-gray-500 text-sm">For All Your Machinery</p>
-                </div>
+            <div className="bg-gray-100 rounded-lg p-2 lg:p-3 shadow-xl">
+              <div className="aspect-video bg-white rounded-lg overflow-hidden shadow-2xl">
+                <img
+                  src="https://i.pinimg.com/736x/fd/2d/b2/fd2db204203b2ae81137e93318d6c2d7.jpg"
+                  alt="Premium Parts"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-8 lg:mt-12">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 lg:p-4 border border-white/20">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 lg:p-4 border border-white/20 shadow-lg">
             <div className="flex flex-col md:flex-row gap-3 lg:gap-4">
               <input
                 type="text"

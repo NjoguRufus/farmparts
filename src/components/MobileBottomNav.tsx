@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Search, Grid3x3, ShoppingCart } from 'lucide-react';
+import { Home, Search, Grid3x3, ShoppingCart, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { allProducts } from '../utils/products';
+import { useNotification } from '../contexts/NotificationContext';
 
 export const MobileBottomNav: React.FC = () => {
   const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCategories, setShowCategories] = useState(false);
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -33,6 +39,15 @@ export const MobileBottomNav: React.FC = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matches = allProducts.filter((p) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.oemNumber || '').toLowerCase().includes(q) ||
+        (p.brand || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.subcategory || '').toLowerCase().includes(q)
+      );
+      showToast(matches.length ? `${matches.length} product${matches.length>1?'s':''} found` : 'No products found', matches.length ? 'success' : 'warning');
       sessionStorage.setItem('searchQuery', searchQuery);
       navigate('/shop');
       setShowSearch(false);
@@ -41,7 +56,7 @@ export const MobileBottomNav: React.FC = () => {
   };
 
   const handleCategories = () => {
-    navigate('/shop');
+    setShowCategories(true);
   };
 
   const handleCart = () => {
@@ -50,6 +65,102 @@ export const MobileBottomNav: React.FC = () => {
 
   return (
     <>
+      {/* Categories Sidebar (Mobile) */}
+      {showCategories && (
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowCategories(false)}>
+          <div className="bg-white w-80 h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
+              <h3 className="text-lg font-bold text-[#0A1A3F]">Categories</h3>
+              <button onClick={() => setShowCategories(false)} className="p-1 rounded hover:bg-gray-100">
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="p-4">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search categories..."
+                  value={categoryQuery}
+                  onChange={(e) => setCategoryQuery(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-[#D4A017]"
+                />
+              </div>
+
+              {/* Derived data */}
+              {(() => {
+                const categoryToProducts: Record<string, typeof allProducts> = allProducts.reduce((acc, p) => {
+                  const key = p.category || 'Other';
+                  if (!acc[key]) acc[key] = [] as any;
+                  acc[key].push(p);
+                  return acc;
+                }, {} as Record<string, typeof allProducts>);
+
+                const categoryNames = Object.keys(categoryToProducts).sort((a, b) => a.localeCompare(b));
+                const filteredNames = categoryQuery
+                  ? categoryNames.filter((name) => name.toLowerCase().includes(categoryQuery.toLowerCase()))
+                  : categoryNames;
+
+                const handleGoToCategory = (name: string) => {
+                  sessionStorage.setItem('searchCategory', name);
+                  setShowCategories(false);
+                  navigate('/shop');
+                };
+
+                return (
+                  <ul className="divide-y divide-gray-100">
+                    {filteredNames.map((name) => {
+                      const products = categoryToProducts[name] || [];
+                      const isOpen = expandedCategory === name;
+                      return (
+                        <li key={name} className="py-2">
+                          <button
+                            onClick={() => setExpandedCategory(isOpen ? null : name)}
+                            className="w-full flex items-center justify-between text-left px-2 py-2 rounded hover:bg-gray-50"
+                          >
+                            <span className="text-sm font-medium text-[#0A1A3F] line-clamp-1">{name}</span>
+                            <span className="flex items-center gap-2 text-xs text-gray-500">
+                              <span>{products.length}</span>
+                              {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            </span>
+                          </button>
+
+                          {isOpen && (
+                            <div className="mt-2 ml-2">
+                              <button
+                                onClick={() => handleGoToCategory(name)}
+                                className="mb-2 text-xs text-[#D4A017] hover:underline"
+                              >
+                                View all in {name}
+                              </button>
+                              <ul className="max-h-64 overflow-auto pr-2 space-y-1">
+                                {products.slice(0, 25).map((p) => (
+                                  <li key={p.id}>
+                                    <button
+                                      onClick={() => {
+                                        setShowCategories(false);
+                                        navigate(`/product/${p.id}`);
+                                      }}
+                                      className="w-full text-left text-sm px-2 py-1 rounded hover:bg-gray-50 line-clamp-1"
+                                      title={p.title}
+                                    >
+                                      {p.title}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
       {showSearch && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setShowSearch(false)}>
           <div className="bg-white p-4 mt-20 mx-4 rounded-lg" onClick={(e) => e.stopPropagation()}>

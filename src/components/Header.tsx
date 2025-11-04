@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Heart, ArrowLeftRight, User, Menu, X, ChevronDown } from 'lucide-react';
 import { useNotification } from '../contexts/NotificationContext';
 import { Tractor } from 'lucide-react';
+import { allProducts } from '../utils/products';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -38,6 +39,15 @@ export const Header: React.FC = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matches = allProducts.filter((p) =>
+        p.title.toLowerCase().includes(q) ||
+        (p.oemNumber || '').toLowerCase().includes(q) ||
+        (p.brand || '').toLowerCase().includes(q) ||
+        (p.category || '').toLowerCase().includes(q) ||
+        (p.subcategory || '').toLowerCase().includes(q)
+      );
+      showToast(matches.length ? `${matches.length} product${matches.length>1?'s':''} found` : 'No products found', matches.length ? 'success' : 'warning');
       sessionStorage.setItem('searchQuery', searchQuery);
       navigate('/shop');
     }

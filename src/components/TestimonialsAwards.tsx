@@ -49,6 +49,11 @@ const awards = [
     image: 'https://farmpartsltd.com/wp-content/uploads/2023/03/farmparts2.png',
     title: 'Award Recognition',
   },
+  {
+    image: '/Logos/farmparts%20logos/%40final%20awars.png',
+    fallback: '/Logos/farmparts logos/final awars.png',
+    title: 'Top 100 Mid-sized Companies',
+  },
 ];
 
 export const TestimonialsAwards: React.FC = () => {
@@ -190,10 +195,17 @@ export const TestimonialsAwards: React.FC = () => {
                 >
                   <div className="aspect-square flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
                     <img
-                      src={award.image}
+                      src={(award as any).image}
                       alt={award.title}
                       className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
+                      onError={(e) => {
+                        const fb = (award as any).fallback;
+                        if (fb && e.currentTarget.getAttribute('data-tried') !== '1') {
+                          e.currentTarget.setAttribute('data-tried', '1');
+                          e.currentTarget.src = fb;
+                        }
+                      }}
                     />
                   </div>
                 </div>

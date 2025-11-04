@@ -479,62 +479,54 @@ const excludedImagePatterns: RegExp[] = [
 
 const filteredImagePool = imagePool36to270.filter((p) => !excludedImagePatterns.some((re) => re.test(p)));
 
-// Generate placeholder products from image pool (imgi_36..imgi_270)
-const placeholderProducts: Array<Omit<Product, 'image'> & { image?: string }> = filteredImagePool.map((imgPath) => {
-  // Extract numeric id from filename
-  const match = imgPath.match(/imgi_(\d+)/);
-  const numericId = match ? match[1] : Math.floor(Math.random() * 100000).toString();
+// Curated list of product codes/models to show in Shop (deduplicated)
+const curatedCodes: string[] = [
+  'GA9020','GB602','GB801','9046','LW1401','LC1230 METAL','LS1040','LS1219L','2712','UB1103','HG5012','HG6030','HG651CK','RP0900','EM2650UH','TM3000C','DGA900Z','DJR187Z','DJV180Z','DPO600Z','DTR180Z','DTW1001Z','DTW300Z','DTW450Z','HP457DWE','JV183DZ','6906','HP2050','HR2475','D24153','Flap Disc 01','S0099 Air Filter','P7155 Oil Filter','Tie Rod LH','140987 Pic1','11 2','S.41938','S.41542','S.41571','S.41932','Brake Pads','V Groove Bit','Bim Hole Saw','Ear Muff','MAKITA ANGLE GRINDER 4 1 2 840W','Finishing Sander','Handle Jig Saw','Blower','6723DW','DF347DWE','CL105DWX','GA7020',
+];
 
-  // Derive a readable title from filename
-  const fileName = imgPath.split('/').pop() || imgPath;
-  const baseName = fileName.replace(/^imgi_\d+_?/, '').replace(/\.[a-zA-Z0-9]+$/, '');
-  let title = baseName
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b(\w)/g, (m) => m.toUpperCase())
-    .trim() || `Product ${numericId}`;
+// Ensure pretty map contains Brake Pads entry
+if (!(prettyMap as any)['Brake Pads']) {
+  (prettyMap as any)['Brake Pads'] = { title: 'Vehicle Brake Pads', price: 'Price on Request', category: 'Vehicle Parts' };
+}
 
-  // Try pretty mapping
-  const candidateCodes = extractCodesFromFilename(fileName);
-  let price = 'KSh —';
-  let oemNumber: string | undefined = undefined;
-  let brand: string | undefined = undefined;
-  let category: string = 'Farm Parts';
-  let subcategory: string = 'General';
+// Build curated products, keeping existing images from pool that match codes
+const curatedProducts: Array<Omit<Product, 'image'> & { image: string }> = curatedCodes.map((code) => {
+  const normalizedCode = code.replace(/\s+/g, '').replace(/[-_.]/g, '').toUpperCase();
 
-  for (const code of candidateCodes) {
-    const pretty = prettyMap[code as keyof typeof prettyMap];
-    if (pretty) {
-      title = pretty.title;
-      price = pretty.price;
-      oemNumber = code;
-      brand = pretty.brand ?? brand;
-      category = pretty.category ?? category;
-      break;
-    }
-  }
+  // Find first matching image from pool for this code
+  const imgPath = filteredImagePool.find((p) => {
+    const up = p.toUpperCase();
+    if (code === 'Brake Pads') return /BRAKE[-_]?PADS/i.test(p);
+    return up.includes(normalizedCode) || up.includes(code.toUpperCase().replace(/\s+/g, '-'));
+  }) || filteredImagePool[0];
 
-  // Normalize price: if it's a range like "KSh A - B", keep only the first part
+  // Pretty details
+  const pretty = prettyMap[code as keyof typeof prettyMap];
+  const title = pretty?.title || code;
+  let price = pretty?.price ? (pretty.price.startsWith('KSh') ? pretty.price : `KSh ${pretty.price}`) : 'KSh —';
   if (price.includes('-')) {
     price = price.split('-')[0].trim();
   }
+  const category = pretty?.category || 'Farm Parts';
+  const subcategory = 'General';
+  const brand = pretty?.brand;
 
   return {
-    id: `IMG-${numericId}`,
+    id: code,
     title,
     price,
     inStock: true,
     category,
     subcategory,
     brand,
-    oemNumber,
+    oemNumber: /[A-Z0-9]/i.test(code) ? code : undefined,
     image: imgPath,
   };
 });
 
-// Merge authored products with placeholders and assign images for authored where needed
-export const allProducts: Product[] = [
-  ...placeholderProducts.map((p) => p as Product),
-];
+// Merge authored products with placeholders, assign images for authored, and de-duplicate
+// Export only curated products for the Shop page
+export const allProducts: Product[] = curatedProducts as Product[];
 
 export const getProductById = (id: string): Product | undefined => {
   return allProducts.find(product => product.id === id);
