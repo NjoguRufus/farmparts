@@ -4,6 +4,8 @@ import { Heart, ShoppingCart, Trash2, ArrowLeft } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { useNotification } from '../contexts/NotificationContext';
 import { useConfirm } from '../hooks/useConfirm';
+import { allProducts } from '../utils/products';
+import { getProductImage } from '../utils/imageMapper';
 
 interface WishlistItem {
   title: string;
@@ -21,7 +23,27 @@ export const Wishlist: React.FC = () => {
 
   useEffect(() => {
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    setWishlistItems(wishlist);
+    // Backfill missing images from catalog or generate from mapper
+    const withImages = wishlist.map((item: WishlistItem) => {
+      if (item.image && (item.image.startsWith('/') || item.image.startsWith('http'))) {
+        return item;
+      }
+      const match = allProducts.find((p) =>
+        (item.oemNumber && p.oemNumber && p.oemNumber.toUpperCase() === item.oemNumber.toUpperCase()) ||
+        p.title.toLowerCase() === item.title.toLowerCase()
+      );
+      const image = match?.image || getProductImage({
+        title: item.title,
+        category: 'Farm Parts',
+        subcategory: 'General',
+        oemNumber: item.oemNumber,
+        brand: undefined,
+      } as any);
+      return { ...item, image } as WishlistItem;
+    });
+    setWishlistItems(withImages);
+    // Keep storage updated so future loads have images
+    localStorage.setItem('wishlist', JSON.stringify(withImages));
   }, []);
 
   const updateWishlist = (updatedItems: WishlistItem[]) => {
