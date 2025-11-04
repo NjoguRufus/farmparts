@@ -102,12 +102,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer"
     >
       <div className="relative overflow-hidden bg-gray-100">
-        <div className="aspect-square flex items-center justify-center p-6">
+        <div className="aspect-square flex items-center justify-center p-0">
           {image && image.trim() !== '' && (image.startsWith('/') || image.startsWith('http')) ? (
             <img
               src={image}
               alt={title}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-cover"
               loading="lazy"
               onError={(e) => {
                 // Fallback to placeholder if image fails to load

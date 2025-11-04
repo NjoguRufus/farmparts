@@ -123,7 +123,7 @@ export const ProductDetails: React.FC = () => {
                 <img
                   src={images[selectedImage]}
                   alt={product.title}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                   loading="lazy"
                 />
               ) : (
