@@ -474,7 +474,7 @@ export const CategoryGrid: React.FC = () => {
           </div>
         ) : (
           <div className="lg:hidden text-center py-12">
-            <p className="text-gray-500 text-lg">No categories found matching "{searchQuery}"</p>
+            <p className="text-gray-500 text-lg">No Categories Found Matching "{searchQuery}"</p>
           </div>
         )}
       </div>
