@@ -1,99 +1,33 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProductImage } from '../utils/imageMapper';
 import { allProducts } from '../utils/products';
 
-const productsData = [
-  {
-    title: 'Perkins 2644H501 Fuel Filter - Genuine OEM',
-    price: 'KSh 3,450',
-    inStock: true,
-    oemNumber: '2644H501',
-    brand: 'Perkins',
-    category: 'Tractor Parts',
-    subcategory: 'Engine Components',
-  },
-  {
-    title: 'Makita DHP484Z Cordless Hammer Driver Drill 18V',
-    price: 'KSh 28,900',
-    inStock: true,
-    oemNumber: 'DHP484Z',
-    brand: 'Makita',
-    category: 'Power Tools',
-    subcategory: 'Makita Tools',
-  },
-  {
-    title: 'Bosch 0 986 494 294 Brake Pad Set - Front',
-    price: 'KSh 5,200',
-    inStock: true,
-    oemNumber: '0986494294',
-    brand: 'Bosch',
-    category: 'Vehicle Parts',
-    subcategory: 'Brake Systems',
-  },
-  {
-    title: 'Sparex S.67425 Hydraulic Filter Element',
-    price: 'KSh 4,100',
-    inStock: true,
-    oemNumber: 'S.67425',
-    brand: 'Sparex',
-    category: 'Tractor Parts',
-    subcategory: 'Hydraulic Systems',
-  },
-  {
-    title: 'STIHL MS 250 Chainsaw 18" Bar Professional',
-    price: 'KSh 42,500',
-    inStock: true,
-    oemNumber: 'MS250-18',
-    brand: 'STIHL',
-    category: 'Power Tools',
-    subcategory: 'STIHL Equipment',
-  },
-  {
-    title: 'Federal-Mogul Champion RC12YC Spark Plug',
-    price: 'KSh 850',
-    inStock: true,
-    oemNumber: 'RC12YC',
-    brand: 'Champion',
-    category: 'Workshop Items',
-    subcategory: 'Hand Tools',
-  },
-  {
-    title: 'CNH Case IH Air Filter 84257511',
-    price: 'KSh 6,750',
-    inStock: true,
-    oemNumber: '84257511',
-    brand: 'Case IH',
-    category: 'Tractor Parts',
-    subcategory: 'Filters & Fluids',
-  },
-  {
-    title: 'Castrol GTX 20W-50 Engine Oil 5L',
-    price: 'KSh 3,200',
-    inStock: true,
-    oemNumber: 'GTX-20W50',
-    brand: 'Castrol',
-    category: 'Workshop Items',
-    subcategory: 'Lubricants & Oils',
-  },
-];
-
-// Map products to real catalog entries when possible, with images and IDs
-const products = productsData.map((product) => {
-  const match = allProducts.find((p) =>
-    (product.oemNumber && p.oemNumber && p.oemNumber.toUpperCase() === product.oemNumber.toUpperCase()) ||
-    p.title.toLowerCase() === product.title.toLowerCase()
-  );
-  const image = match?.image || getProductImage(product);
-  return { ...product, id: match?.id, image } as any;
-});
+// Build Best Sellers from the same products used in Shop: pick 8 at random
 
 export const BestSellers: React.FC = () => {
   const navigate = useNavigate();
   const [startIndex, setStartIndex] = useState(0);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
+
+  const products = useMemo(() => {
+    const arr = [...allProducts];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, 8).map((p) => ({
+      id: p.id,
+      title: p.title,
+      price: p.price,
+      image: p.image || getProductImage(p as any),
+      inStock: p.inStock,
+      oemNumber: p.oemNumber,
+      category: p.category,
+    }));
+  }, []);
 
   const handleViewAll = () => {
     navigate('/shop');
